@@ -2,6 +2,7 @@
 
 """Main."""
 
+#  Running CPU in a seperate file. 
 import sys
 from cpu import *
 
