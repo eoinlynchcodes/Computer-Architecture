@@ -19,6 +19,7 @@ class CPU:
         # Of where we currently are on the ram
         self.pc = 0 
         self.halt = True 
+
     
     def ram_write(self, programIndex, value):
         self.ram[programIndex] = value 
@@ -80,10 +81,11 @@ class CPU:
 
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+            print(self.reg[reg_a])
         
         elif op == "DIV": 
             self.reg[reg_a] //= self.reg[reg_b]
-            
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -130,7 +132,6 @@ class CPU:
             # LDI
             if instructor_register == LDI:
                 self.reg[argumentOne] = argumentTwo
-                self.pc += 3
             
             # PRN
             elif instructor_register == PRN:
@@ -140,4 +141,3 @@ class CPU:
                 self.alu("MUL", argumentOne, argumentTwo)
 
             self.pc += instruction_length
-            
