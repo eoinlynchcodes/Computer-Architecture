@@ -6,7 +6,10 @@ LDI = 0b10000010 # LDI R0,8
 PRN = 0b01000111 # PRN R0
 HLT = 0b00000001 # HLT
 MUL = 0b10100010 # MUL R0,R1
+POP = 0b01000110 
+PUSH = 0b01000101
 
+SP = 7
 
 class CPU:
     """Main CPU class."""
@@ -52,21 +55,6 @@ class CPU:
             print(f"{sys.argv[0]}: {filename} not found!")
             sys.exit(2)
 
-        # For now, we've just hardcoded a program:
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010, # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111, # PRN R0
-        #     0b00000000,
-        #     0b00000001, # HLT
-        # ]
-               
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
-
         self.halt = False
 
     def alu(self, op, reg_a, reg_b):
@@ -90,10 +78,6 @@ class CPU:
             raise Exception("Unsupported ALU operation")
 
     def trace(self):
-        """
-        Handy function to print out the CPU state. You might want to call this
-        from run() if you need help debugging.
-        """
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
@@ -112,11 +96,8 @@ class CPU:
     def run(self):
         # Read the memory address stores in register PC.
         # Store the result in IR / the Instructor Register.
-
         # exit an if else loop if a HLT instruction is encountered.
-
         # Add LDI instruction. Add a specified register to a specified value.
-
         # Add PRN instruction. See LS-8 spec. 
 
         while self.halt is False:
@@ -139,5 +120,17 @@ class CPU:
             
             elif instructor_register == MUL:
                 self.alu("MUL", argumentOne, argumentTwo)
+
+            elif instructor_register == PUSH:
+                index_of_the_register = self.ram_read(self.pc + 1)
+                val = self.reg[index_of_the_register]
+                self.reg[SP] -= 1
+                self.ram[self.reg[SP]] = val
+
+            elif instructor_register == POP:
+                index_of_the_register = self.ram_read(self.pc + 1)
+                val = self.ram[self.reg[SP]]
+                self.reg[index_of_the_register] = val
+                self.reg[SP] += 1
 
             self.pc += instruction_length
