@@ -14,12 +14,13 @@ CMP = 0b10100111
 JMP = 0b01010100
 JEQ = 0b01011010
 JNE = 0b01010110
-FL = 0b00000LGE
 
 SP = 7
 
 class CPU:
     """Main CPU class."""
+
+    FL = 0b00000000
 
     def __init__(self):
         """Construct a new CPU."""
@@ -75,24 +76,25 @@ class CPU:
             self.reg[reg_a] //= self.reg[reg_b]
         
         # alu part for the CMP(Computer Management Process) operation
+        # LGE
         elif op == "CMP":
             if self.reg[reg_a] == self.reg[reg_b]:
-                return self.reg[FL[E]] = 1
+                self.FL = 0b00000001
             else:
-                return self.reg[FL[E]] = 0
+                self.FL = 0b00000000
             if self.reg[reg_a] < self.reg[reg_b]:
-                return self.reg[FL[L]] = 1
+                self.FL = 0b00000100
             else: 
-                self.ref[FL[L]] = 0
+                self.FL = 0b00000000
             if self.reg[reg_a] > self.reg[reg_b]:
-                return self.reg[FL[G]] = 1
+                self.FL = 0b00000010
             else:
-                return self.reg[Fl[G]] 0
+                self.FL = 0b000000000
         else:
-            self.reg[Fl] = 0b00000000
+                self.FL = 0b00000000
 
-        else:
-            raise Exception("Unsupported ALU operation")
+        # else:
+        #     raise Exception("Unsupported ALU operation")
 
     def trace(self):
 
@@ -108,8 +110,6 @@ class CPU:
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
 
-        print()
-
     def run(self):
         # Read the memory address stores in register PC.
         # Store the result in IR / the Instructor Register.
@@ -118,39 +118,39 @@ class CPU:
         # Add PRN instruction. See LS-8 spec. 
 
         while self.halt is False:
-            instructor_register = self.ram[self.pc]
-            instruction_length = ((instructor_register >> 6) & 0b11) + 1 # (bitshifted instruction)
+            instruction = self.ram[self.pc]
+            instruction_length = ((instruction >> 6) & 0b11) + 1 # (bitshifted instruction)
             argumentOne = self.ram[self.pc + 1]
             argumentTwo = self.ram[self.pc + 2]
             
             # HLT
-            if instructor_register == HLT:
+            if instruction == HLT:
                 self.halt = True
             
             # LDI
-            if instructor_register == LDI:
+            if instruction == LDI:
                 self.reg[argumentOne] = argumentTwo
             
             # PRN
-            elif instructor_register == PRN:
+            elif instruction == PRN:
                 print(self.reg[argumentOne])
             
-            elif instructor_register == MUL:
+            elif instruction == MUL:
                 self.alu("MUL", argumentOne, argumentTwo)
 
-            elif instructor_register == PUSH:
+            elif instruction == PUSH:
                 index_of_the_register = self.ram_read(self.pc + 1)
                 val = self.reg[index_of_the_register]
                 self.reg[SP] -= 1
                 self.ram[self.reg[SP]] = val
 
-            elif instructor_register == POP:
+            elif instruction == POP:
                 index_of_the_register = self.ram_read(self.pc + 1)
                 val = self.ram[self.reg[SP]]
                 self.reg[index_of_the_register] = val
                 self.reg[SP] += 1
 
-            elif instructor_register == CALL:
+            elif instruction == CALL:
                 # Push the address of the instruction direction
                 self.reg[SP] -= 1
                 self.ram[self.reg[SP]] = self.pc + 2
@@ -158,48 +158,45 @@ class CPU:
                 index_of_the_register = self.ram[self.pc + 1]
                 self.pc = self.reg[index_of_the_register]
 
-            elif instructor_register == RET:
+            elif instruction == RET:
                 self.pc = self.ram[self.reg[SP]]
                 self.reg[SP] += 1
             
             # Add the CMP instructions and equal flag to your LS-8
-            elif instructor_register == CMP:
+            elif instruction == CMP:
                 # How do I call the alu?
                 self.alu("CMP", argumentOne, argumentTwo)
-                
-
 
             # Add the JMP instruction
-            elif instructor_register == JMP:
+            elif instruction == JMP:
                 # Go the register that is given
                 # What is the register that is given?
                 # Set the PC to the address stored in the given register
-                index_of_the_register = self.ram_read(pc)
-                self.pc = index_of_the_register
+                address = self.reg[instruction]
+                self.pc = address
 
             # Add the JEQ instruction
-            elif instructor_register == JEQ:
-                # How do I store the address in the given register?
-                # Set the PC
-                
-                # We need to get the CMD result
-                flag = self.alu("CMP", argumentOne, argumentTwo)
-                if flag[7] = 1:
-                    # jump to the address stored in the given register
-                    return self.ram[self.reg[address]]
-                else: 
-                    continue
+            elif instruction == JEQ:
+                if self.FL == 0b01010100:
+                    address = self.reg[self.ram_read(self.pc + 1)]
+                    self.pc = address
+                else:
+                    self.pc += 2
+               
 
             # Add the JNE instructions
-            elif instructor_register == JNE:
-                # If E flag is clear(false, 0), jump to the address stored in the given register
-                flag = self.alu("CMP", argumentOne, argumentTwo)
-                if flag[7] = 0:
-                    return self.ram[self.reg[address]]
-                pass
+            elif instruction == JNE:
+                # IF E Flag is clear or 0, jump to the address stored in the given register.
+                # jump to the address stored in the given register.
+
+                if self.FL == 0b00000000:
+                    address = self.reg[self.ram_read(self.pc + 1)]
+                    self.pc = address
+                else:
+                    self.pc += 2
 
             else:
-                print(f"program failed to run", "{0:b".format(instructor_register))
+                print(f"program failed to run", "{0:b}".format(instruction))
                 sys.exit(1)
 
 
