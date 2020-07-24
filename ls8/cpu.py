@@ -14,6 +14,7 @@ CMP = 0b10100111
 JMP = 0b01010100
 JEQ = 0b01011010
 JNE = 0b01010110
+FL = 0b00000LGE
 
 SP = 7
 
@@ -76,17 +77,19 @@ class CPU:
         # alu part for the CMP(Computer Management Process) operation
         elif op == "CMP":
             if self.reg[reg_a] == self.reg[reg_b]:
-                # Set the Equal E flag to 1 
-                pass
-            elif self.reg[reg_a] < self.reg[reg_b]:
-                # Set the less-than L flag to 1 
-                pass
-            elif self.reg[reg_a] > self.reg[reg_b]:
-                # set the greater-than flag to 1
-                pass
+                return self.reg[FL[E]] = 1
             else:
-                # set the Equal E flag to 0
-                pass
+                return self.reg[FL[E]] = 0
+            if self.reg[reg_a] < self.reg[reg_b]:
+                return self.reg[FL[L]] = 1
+            else: 
+                self.ref[FL[L]] = 0
+            if self.reg[reg_a] > self.reg[reg_b]:
+                return self.reg[FL[G]] = 1
+            else:
+                return self.reg[Fl[G]] 0
+        else:
+            self.reg[Fl] = 0b00000000
 
         else:
             raise Exception("Unsupported ALU operation")
@@ -161,8 +164,7 @@ class CPU:
             
             # Add the CMP instructions and equal flag to your LS-8
             elif instructor_register == CMP:
-                # How do I add anything to the LS-8
-                #  How do I call the alu?
+                # How do I call the alu?
                 self.alu("CMP", argumentOne, argumentTwo)
                 
 
@@ -172,20 +174,28 @@ class CPU:
                 # Go the register that is given
                 # What is the register that is given?
                 # Set the PC to the address stored in the given register
-                pass
+                index_of_the_register = self.ram_read(pc)
+                self.pc = index_of_the_register
 
             # Add the JEQ instruction
             elif instructor_register == JEQ:
-                # if the equal flag is set to true, jump to the address stored in the given register
-                # What is the equal flag, how do I find it?
-                # What does to jump to the register mean?
                 # How do I store the address in the given register?
                 # Set the PC
-                pass
+                
+                # We need to get the CMD result
+                flag = self.alu("CMP", argumentOne, argumentTwo)
+                if flag[7] = 1:
+                    # jump to the address stored in the given register
+                    return self.ram[self.reg[address]]
+                else: 
+                    continue
 
             # Add the JNE instructions
             elif instructor_register == JNE:
                 # If E flag is clear(false, 0), jump to the address stored in the given register
+                flag = self.alu("CMP", argumentOne, argumentTwo)
+                if flag[7] = 0:
+                    return self.ram[self.reg[address]]
                 pass
 
             else:
