@@ -8,6 +8,12 @@ HLT = 0b00000001 # HLT
 MUL = 0b10100010 # MUL R0,R1
 POP = 0b01000110 
 PUSH = 0b01000101
+CALL = 0b01010000
+RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01011010
+JNE = 0b01010110
 
 SP = 7
 
@@ -39,16 +45,11 @@ class CPU:
             with open(filename) as theFile:
                 for line in theFile:
                     comment_split = line.split('#')
-
                     num = comment_split[0].strip()
-
                     if num == '':
                         continue
-                        
                     value = int(num, 2)
-
                     self.ram[address] = value
-
                     address += 1
 
         except FileNotFoundError:
@@ -59,8 +60,6 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        # Arithmetic Logic Unit: Definition, Design & Functions
-
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
 
@@ -73,6 +72,21 @@ class CPU:
         
         elif op == "DIV": 
             self.reg[reg_a] //= self.reg[reg_b]
+        
+        # alu part for the CMP(Computer Management Process) operation
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                # Set the Equal E flag to 1 
+                pass
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                # Set the less-than L flag to 1 
+                pass
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                # set the greater-than flag to 1
+                pass
+            else:
+                # set the Equal E flag to 0
+                pass
 
         else:
             raise Exception("Unsupported ALU operation")
@@ -132,5 +146,51 @@ class CPU:
                 val = self.ram[self.reg[SP]]
                 self.reg[index_of_the_register] = val
                 self.reg[SP] += 1
+
+            elif instructor_register == CALL:
+                # Push the address of the instruction direction
+                self.reg[SP] -= 1
+                self.ram[self.reg[SP]] = self.pc + 2
+                # Set the PC to the address at the given register
+                index_of_the_register = self.ram[self.pc + 1]
+                self.pc = self.reg[index_of_the_register]
+
+            elif instructor_register == RET:
+                self.pc = self.ram[self.reg[SP]]
+                self.reg[SP] += 1
+            
+            # Add the CMP instructions and equal flag to your LS-8
+            elif instructor_register == CMP:
+                # How do I add anything to the LS-8
+                #  How do I call the alu?
+                self.alu("CMP", argumentOne, argumentTwo)
+                
+
+
+            # Add the JMP instruction
+            elif instructor_register == JMP:
+                # Go the register that is given
+                # What is the register that is given?
+                # Set the PC to the address stored in the given register
+                pass
+
+            # Add the JEQ instruction
+            elif instructor_register == JEQ:
+                # if the equal flag is set to true, jump to the address stored in the given register
+                # What is the equal flag, how do I find it?
+                # What does to jump to the register mean?
+                # How do I store the address in the given register?
+                # Set the PC
+                pass
+
+            # Add the JNE instructions
+            elif instructor_register == JNE:
+                # If E flag is clear(false, 0), jump to the address stored in the given register
+                pass
+
+            else:
+                print(f"program failed to run", "{0:b".format(instructor_register))
+                sys.exit(1)
+
 
             self.pc += instruction_length
